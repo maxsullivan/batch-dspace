@@ -1,0 +1,106 @@
+#!/bin/bash
+#a script to convert a comma-seperated dump of iscr date to xml for dspace
+
+PDFPATH=/home/sullivm1/Testing/ISCR/ISCR_files
+
+# if necessary, dedup the courses with a onliner such as 
+# cat courses.csv |  awk -F\| '{if($4!=PF){printf("\n%s", $0)} else {printf(", %s", $13)};PF=$4} END {print("\n")} ' > courses-deduped.csv
+
+IFS=,
+cat courses.csv | while  read ID SUBJECT X1 X2 X3 X4 X5 SCHOOL X6 FACULTY X7 X8 ABSTRACT TITLE_EN FILENAMEPDF AUTHOR
+
+                     
+
+#ID SUBJECT X1 X2 X3 X4 X5 X6 SCHOOL X7 FACULTY X8 ABSTRACT TITLE_EN FILENAMEPDF AUTHOR
+
+#cat courses.csv | while  read ID SUBJECT YEAR TRI SHORT_TITLE TITLE_EN TITLE_MI SCHOOLCODE FACULTYCODE APPROVAL LECTURER TYPE LANGUAGE CREATED UPDATED NOTES RS
+#while read line
+do
+    #YEAR=2014
+    #TRI=1
+    #LANGUAGE=en_NZ
+    #RS=RS
+
+    if false
+    then
+	echo ID=$ID SUBJECT=$SUBJECT YEAR=$YEAR TRI=$TRI SHORT_TITLE=$SHORT_TITLE TITLE_EN=$TITLE_EN LANGUAGE=$LANGUAGE FACULTY=$FACULTY SCHOOL=$SCHOOL ABSTRACT=$ABSTRACT RS=$RS
+    else
+
+    LANGUAGE="en"
+    FILENAMEPDF="${FILENAMEPDF}"
+
+    #if [ "$RS" -a "$RS" = "RS" -a "$APPROVAL" -a "$APPROVAL" = "I"  ]
+    #then
+     #   if [ ! -e ${PDFPATH}/$FILENAME.pdf ]
+      #  then
+       #     echo BADNESS ! ${PDFPATH}/${YEAR}_${TRI}_${SUBJECT}.pdf !!!
+	#    echo  ${PDFPATH}/${YEAR}_${TRI}_${SUBJECT}.pdf >> ./BADNESS.$$.list
+        #else
+
+            mkdir -p imports/$ID
+            cp $PDFPATH/"${FILENAMEPDF}".pdf  ./imports/$ID
+	    #touch ./imports/$ID/$FILENAME.pdf
+            echo "${FILENAMEPDF}".pdf > imports/$ID/contents
+            
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > ./imports/$ID/dublin_core.xml
+            echo "<dublin_core  schema=\"dc\">" >> ./imports/$ID/dublin_core.xml
+    # keywords
+
+            echo "<dcvalue element=\"subject\" qualifier=\"none\">"$SUBJECT"</dcvalue>" >> ./imports/$ID/dublin_core.xml
+            
+    # titles
+                 echo "<dcvalue element=\"title\" qualifier=\"none\">"$TITLE_EN"</dcvalue>" >> ./imports/$ID/dublin_core.xml
+            
+            if [ "$LANGUAGE" -a "$LANGUAGE" != "-"  ]
+            then
+                echo "<dcvalue element=\"language\" qualifier=\"none\">"$LANGUAGE"</dcvalue>" >> ./imports/$ID/dublin_core.xml
+            fi
+            
+   
+     #            if [ "$YEAR" -a "$YEAR" != "-"  ]
+      #      then
+       #         echo "<dcvalue element=\"date\" qualifier=\"none\">"$YEAR"</dcvalue>" >> ./imports/$ID/dublin_core.xml
+        #        if [ "$TRI" -a "$TRI" != "-"  ]
+         #       then
+          #          echo "<dcvalue element=\"date\" qualifier=\"semester\">"$YEAR:$TRI"</dcvalue>" >> ./imports/$ID/dublin_core.xml
+           #     fi
+           # fi
+            echo "<dcvalue element=\"format\" qualifier=\"none\">pdf</dcvalue>" >> ./imports/$ID/dublin_core.xml
+            echo "<dcvalue element=\"type\" qualifier=\"none\">text</dcvalue>" >> ./imports/$ID/dublin_core.xml
+
+           echo "<dcvalue element=\"description\" qualifier=\"abstract\">"$ABSTRACT"</dcvalue>" >> ./imports/$ID/dublin_core.xml
+            
+            #LECTURER=`echo $LECTURER | perl -pe 's/(\w+)/\u\L$1/g'`
+            #if [ "$LECTURER" -a "$LECTURER" != "-"  ]
+            #then
+                #echo "<dcvalue element=\"contributor\" qualifier=\"advisor\">"$LECTURER"</dcvalue>" >> ./imports/$ID/dublin_core.xml
+                echo "<dcvalue element=\"contributor\" qualifier=\"author\">$AUTHOR</dcvalue>" >> ./imports/$ID/dublin_core.xml
+            #fi
+            
+            echo "</dublin_core>" >> ./imports/$ID/dublin_core.xml
+
+            
+            
+            echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > ./imports/$ID/metadata_vuwschema.xml
+            echo "<dublin_core schema=\"vuwschema\">" >> ./imports/$ID/metadata_vuwschema.xml
+            
+            #if [ "$SCHOOL" -a "$SCHOOL" != "-"  ]
+            #then
+                echo "<dcvalue element=\"contributor\" qualifier=\"unit\">New Zealand Institute for the Study of Competition and Regulation</dcvalue>" >> ./imports/$ID/metadata_vuwschema.xml
+            #fi
+            #if [  "$FACULTY" -a "$FACULTY" != "-"  ]
+            #then
+                echo "<dcvalue element=\"contributor\" qualifier=\"unit\">Victoria Business School: Orauariki</dcvalue>" >> ./imports/$ID/metadata_vuwschema.xml
+            #fi
+
+            echo "<dcvalue element=\"subject\" qualifier=\"anzsrcseo\" language=\"en_NZ\">149999 Economics not elsewhere classified</dcvalue>" >> ./imports/$ID/metadata_vuwschema.xml
+
+            echo "</dublin_core>" >> ./imports/$ID/metadata_vuwschema.xml
+            
+        fi
+    #fi
+    #fi
+done
+
+#escape ampersands
+#sed -i 's/&/&amp;/' ./imports/*/*.xml
